@@ -1,6 +1,10 @@
 # 🚀 הדגמת Amazon EKS  
 ### Terraform • AWS CloudShell • Kubernetes
-
+1. פתח דפדפן אינטרנט  
+2. היכנס לכתובת:  
+   https://console.aws.amazon.com
+3. התחבר לחשבון ה־AWS שלך  
+4. בפינה הימנית העליונה של המסך, בחר Region:
 **שם ה־Repository:** eks-far-2-cel-demo-30-12  
 **Region:** us-east-1 (N. Virginia)
 
