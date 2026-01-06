@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: far-2-cel
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: far-2-cel
+  template:
+    metadata:
+      labels:
+        app: far-2-cel
+    spec:
+      containers:
+        - name: far-2-cel
+          image: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/far-2-cel:1.0
+          ports:
+            - containerPort: 8080
