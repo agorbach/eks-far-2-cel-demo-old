@@ -296,7 +296,97 @@ kubectl get nodes
 
 ---
 
-## 1️⃣1️⃣ המשך תרגול Kubernetes בכיתה
+## 1️⃣1️⃣ הרצת אפליקציית far-2-cel בתוך Kubernetes (EKS)
+
+בשלב זה נריץ אפליקציית Flask קיימת בתוך Cluster של Amazon EKS,  
+באמצעות Image שנמצא ב־Amazon ECR.
+
+> 💡 בדמו זה **לא בונים Docker Image בכיתה**.  
+> מניחים שקיים Image מוכן (או שנבנה מראש).
+
+---
+
+## 1️⃣1️⃣.1️⃣ יצירת Repository ב־Amazon ECR
+
+```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+REGION=us-east-1
+```
+
+```bash
+aws ecr create-repository   --repository-name far-2-cel   --region $REGION
+```
+
+---
+
+## 1️⃣1️⃣.2️⃣ התחברות ל־Amazon ECR
+
+```bash
+aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
+```
+
+---
+
+## 1️⃣1️⃣.3️⃣ Deployment ב־Kubernetes
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: far-2-cel
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: far-2-cel
+  template:
+    metadata:
+      labels:
+        app: far-2-cel
+    spec:
+      containers:
+        - name: far-2-cel
+          image: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/far-2-cel:1.0
+          ports:
+            - containerPort: 8080
+```
+
+```bash
+kubectl apply -f deployment.yaml
+kubectl get pods
+```
+
+---
+
+## 1️⃣1️⃣.4️⃣ Service מסוג LoadBalancer
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: far-2-cel
+spec:
+  type: LoadBalancer
+  selector:
+    app: far-2-cel
+  ports:
+    - port: 80
+      targetPort: 8080
+```
+
+```bash
+kubectl apply -f service.yaml
+kubectl get svc far-2-cel
+```
+
+---
+
+## 1️⃣1️⃣.5️⃣ גישה לאפליקציה בדפדפן
+
+פתח בדפדפן:
+http://<EXTERNAL-IP>
+
+🎉 האפליקציה רצה בתוך Kubernetes על Amazon EKS!
 
 
 
