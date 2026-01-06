@@ -1,38 +1,80 @@
 # 🚀 הדגמת Amazon EKS  
 ### Terraform • AWS CloudShell • Kubernetes
 
-1. פתח דפדפן אינטרנט  
-2. היכנס לכתובת: https://console.aws.amazon.com  
-3. התחבר לחשבון ה־AWS שלך  
-4. בפינה הימנית העליונה של המסך, בחר Region  
-
 **Region:** us-east-1 (N. Virginia)  
 **שם ה־Repository:** eks-far-2-cel-demo-30-12  
 
 ---
 
-## 🎯 מטרת התרגיל
+## 🔍 הערות מקדימות חשובות (קריטי לקריאה)
 
-מסמך זה מציג תהליך **מלא ומעמיק** להקמת **Amazon EKS** באמצעות **Terraform**  
-והרצת **אפליקציית Flask אמיתית** בתוך Kubernetes – משלב אפס ועד תרגול מתקדם.
+### ✏️ למה משתמשים ב־nano?
+ב־AWS CloudShell **אין עורך גרפי**.  
+לכן כל יצירת/עריכת קבצים נעשית באמצעות עורך טקסט בטרמינל.
 
-המסמך מיועד לדמו בכיתה / קורס DevOps  
-ומכיל גם **תרגול מעשי של כשעתיים** לאחר שהאפליקציה רצה.
+העורך המומלץ והפשוט ביותר:
+```bash
+nano
+```
+
+✔ קיים כברירת מחדל  
+✔ נוח ללימוד בכיתה  
+✔ ללא קיצורי מקשים מסובכים  
+
+📌 כל קובץ במדריך נוצר כך:
+```bash
+nano filename.tf
+```
+שמירה: `Ctrl + O` → Enter  
+יציאה: `Ctrl + X`
 
 ---
 
-## 🧱 ארכיטקטורה כללית (High Level)
+### 🧠 האם נכון להשתמש ב־EKS גרסה 1.29?
 
-GitHub (קוד)  
-→ Terraform  
+❌ **לא.**  
+נכון להיום (2026), גרסה **1.29 נחשבת מיושנת**.
+
+AWS תומכת רק ב־3 גרסאות אחרונות של Kubernetes.
+
+### ✅ הגרסה המומלצת כיום:
+```
+Kubernetes 1.30
+```
+(יציבה, נתמכת, ומתאימה לכל הכלים)
+
+📌 כל הכלים במדריך זה **מותאמים לגרסה 1.30**:
+- Terraform AWS Provider  
+- terraform-aws-eks module  
+- kubectl  
+- EKS Managed Node Groups  
+
+---
+
+## 🎯 מטרת התרגיל
+
+תרגיל כיתתי **מקצה לקצה**:
+
+- הקמת Amazon EKS באמצעות Terraform  
+- עבודה מלאה מתוך AWS CloudShell  
+- חיבור IAM ↔ Kubernetes  
+- פריסת אפליקציית Flask אמיתית  
+- תרגול מעשי של Pods / Nodes / LoadBalancer  
+
+⏱️ משך: כ־2–2.5 שעות
+
+---
+
+## 🧱 ארכיטקטורה (High Level)
+
+Terraform  
 → Amazon VPC  
-→ Amazon EKS  
-→ Node Group  
-→ Docker Image  
+→ Amazon EKS (1.30)  
+→ Managed Node Group  
 → Amazon ECR  
-→ Deployment  
+→ Kubernetes Deployment  
 → Service (LoadBalancer)  
-→ כתובת ציבורית בדפדפן  
+→ גישה ציבורית בדפדפן  
 
 ---
 
@@ -40,7 +82,7 @@ GitHub (קוד)
 
 ### נדרש
 - חשבון AWS פעיל  
-- הרשאות Administrator (לצורכי קורס)  
+- משתמש IAM עם הרשאות Administrator (לקורס בלבד)  
 - חשבון GitHub  
 
 ### לא נדרש
@@ -48,19 +90,23 @@ GitHub (קוד)
 - Docker מקומי  
 - Terraform מקומי  
 
-> 💡 כל העבודה מתבצעת בענן – באמצעות **AWS CloudShell בלבד**.
+> 💡 הכל מתבצע ב־AWS CloudShell.
 
 ---
 
 ## 1️⃣ בחירת Region
 
-**Region:** `N. Virginia (us-east-1)`  
-⚠️ כל השלבים במסמך זה מניחים עבודה ב־Region זה.
+AWS Console → Region:
+
+```
+us-east-1 (N. Virginia)
+```
 
 ---
 
 ## 2️⃣ פתיחת AWS CloudShell
 
+בדיקה:
 ```bash
 aws sts get-caller-identity
 ```
@@ -69,12 +115,12 @@ aws sts get-caller-identity
 
 ## 3️⃣ יצירת IAM User ייעודי
 
-**שם המשתמש:**
+**שם:**
 ```
 eks-far-2-cel-demo-user
 ```
 
-יש להוסיף למשתמש את ההרשאות:
+### הרשאות (Attach directly):
 - AdministratorAccess  
 - AdministratorAccess-Amplify  
 - AdministratorAccess-AWSElasticBeanstalk  
@@ -82,9 +128,11 @@ eks-far-2-cel-demo-user
 - AWSManagementConsoleAdministratorAccess  
 - IAMUserChangePassword  
 
+⚠️ לקורס בלבד.
+
 ---
 
-## 4️⃣ הגדרת AWS CLI ב־CloudShell
+## 4️⃣ הגדרת AWS CLI
 
 ```bash
 aws configure
@@ -97,15 +145,17 @@ aws sts get-caller-identity
 
 ---
 
-## 5️⃣ התקנת Terraform ב־CloudShell
+## 5️⃣ התקנת Terraform (גרסה עדכנית)
 
 ```bash
 cd ~
-curl -sLo terraform.zip https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip
+curl -sLo terraform.zip https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
 unzip terraform.zip
 sudo mv terraform /usr/local/bin/
 terraform -version
 ```
+
+✔ Terraform 1.7.x תואם לחלוטין ל־EKS 1.30
 
 ---
 
@@ -118,33 +168,36 @@ mkdir -p /tmp/terraform-plugin-cache
 
 ---
 
-## 7️⃣ יצירת קבצי Terraform (ללא תיקיית infra)
+## 7️⃣ יצירת קבצי Terraform (ללא infra)
 
-> כל הקבצים נוצרים **בתיקייה הראשית של ה־Repository**.
+📌 כל הקבצים נוצרים בתיקייה הראשית של ה־Repository.
 
----
+### 7.1 יצירת versions.tf
 
-### 7.1 versions.tf
+```bash
+nano versions.tf
+```
 
 ```hcl
 terraform {
-  required_version = ">= 1.6.0"
+  required_version = ">= 1.7.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.30"
+      version = "~> 5.40"
     }
   }
 }
 ```
 
-⚠️ חשוב:  
-אין להשתמש ב־AWS provider 6.x.
-
 ---
 
-### 7.2 provider.tf
+### 7.2 יצירת provider.tf
+
+```bash
+nano provider.tf
+```
 
 ```hcl
 provider "aws" {
@@ -154,14 +207,18 @@ provider "aws" {
 
 ---
 
-### 7.3 main.tf (קובץ מלא)
+### 7.3 יצירת main.tf
 
-⚠️ חובה להחליף `ACCOUNT_ID` במספר החשבון שלכם.
+```bash
+nano main.tf
+```
+
+⚠️ חובה להחליף `ACCOUNT_ID`
 
 ```hcl
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.1.2"
+  version = "5.5.1"
 
   name = "eks-far-2-cel-demo-30-12-vpc"
   cidr = "10.0.0.0/16"
@@ -176,10 +233,10 @@ module "vpc" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.24.3"
+  version = "21.0.0"
 
   cluster_name    = "eks-far-2-cel-demo-30-12"
-  cluster_version = "1.29"
+  cluster_version = "1.30"
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -212,7 +269,7 @@ module "eks" {
 
 ---
 
-## 8️⃣ יצירת EKS באמצעות Terraform
+## 8️⃣ יצירת ה־EKS
 
 ```bash
 rm -rf .terraform .terraform.lock.hcl
@@ -220,16 +277,16 @@ terraform init -upgrade
 terraform apply
 ```
 
-אשר:
+אישור:
 ```
 yes
 ```
 
-⏱️ זמן הקמה משוער: 10–15 דקות.
+⏱️ 10–15 דקות.
 
 ---
 
-## 9️⃣ חיבור kubectl ל־EKS
+## 9️⃣ חיבור kubectl
 
 ```bash
 aws eks update-kubeconfig   --region us-east-1   --name eks-far-2-cel-demo-30-12
@@ -239,23 +296,20 @@ kubectl get nodes
 
 ---
 
-## 🔟 הרצת אפליקציית far-2-cel
+## 🔟 תרגול מתקדם (חלק כיתתי)
 
-(כפי שמופיע בשלבים הבאים – Docker, ECR, Deployment, Service)
+✔ Pods  
+✔ Nodes  
+✔ Self-Healing  
+✔ Scale  
+✔ LoadBalancer  
+✔ Logs  
 
----
-
-## 1️⃣1️⃣ תרגול מעשי (כשעה)
-
-- מחיקת Pod ו־Self Healing  
-- שינוי replicas  
-- מחיקת Service והחזרתו  
-- בדיקת Logs  
-- הבנת LoadBalancer ו־Nodes  
+(כפי שנלמד בשיעור)
 
 ---
 
-## 1️⃣2️⃣ ניקוי משאבים
+## 1️⃣1️⃣ ניקוי משאבים
 
 ```bash
 terraform destroy
@@ -265,9 +319,9 @@ terraform destroy
 
 ## ✅ סיכום
 
-✔ הקמת EKS מלאה מאפס  
-✔ עבודה ללא תיקיית infra  
-✔ שילוב Terraform + Kubernetes  
-✔ מסמך מלא ומוכן לכיתה  
+- שימוש בגרסאות עדכניות בלבד  
+- עבודה נכונה עם nano  
+- EKS יציב ונתמך  
+- מסמך מוכן לקורס אמיתי  
 
 ---
