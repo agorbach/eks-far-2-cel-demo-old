@@ -84,7 +84,10 @@ eks-far-2-cel-demo-user
 - AdministratorAccess-AWSElasticBeanstalk  
 - AWSAuditManagerAdministratorAccess  
 - AWSManagementConsoleAdministratorAccess  
-- IAMUserChangePassword  
+- IAMUserChangePassword
+- AmazonEKSWorkerNodePolicy
+- AmazonEKS_CNI_Policy
+- AmazonEC2ContainerRegistryReadOnly
 
 ---
 
