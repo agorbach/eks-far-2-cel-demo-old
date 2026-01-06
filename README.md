@@ -320,6 +320,10 @@ aws ecr create-repository   --repository-name far-2-cel   --region $REGION
 
 ```bash
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
+
+docker build -t far-2-cel:1.0 .
+docker tag far-2-cel:1.0 ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/far-2-cel:1.0
+docker push ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/far-2-cel:1.0
 ```
 
 ---
