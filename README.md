@@ -188,15 +188,13 @@ provider "aws" {
 nano main.tf
 ```
 
-⚠️ **חובה להחליף `AWS Account ID (12 digits)` במספר החשבון שלכם.**
+⚠️ **חובה להחליף `default` במספר החשבון שלכם (ACCOUNT_ID).**
 
 ```hcl
-############################################
-
-############################################
 variable "account_id" {
   description = "AWS Account ID (12 digits)"
   type        = string
+  default     = "390403875536"
 }
 
 ############################################
