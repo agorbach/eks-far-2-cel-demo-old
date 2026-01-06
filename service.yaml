@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: far-2-cel
+spec:
+  type: LoadBalancer
+  selector:
+    app: far-2-cel
+  ports:
+    - port: 80
+      targetPort: 8080
