@@ -332,6 +332,8 @@ docker push ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/far-2-cel:1.0
 
 ## 1️⃣1️⃣.3️⃣ Deployment ב־Kubernetes
 
+**deployment.yaml**
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -362,6 +364,8 @@ kubectl get pods
 ---
 
 ## 1️⃣1️⃣.4️⃣ Service מסוג LoadBalancer
+
+**service.yaml**
 
 ```yaml
 apiVersion: v1
