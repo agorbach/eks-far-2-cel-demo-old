@@ -188,13 +188,20 @@ provider "aws" {
 nano main.tf
 ```
 
-⚠️ **חובה להחליף `ACCOUNT_ID` במספר החשבון שלכם.**
+⚠️ **חובה להחליף `AWS Account ID (12 digits)` במספר החשבון שלכם.**
 
 ```hcl
 ############################################
+# משתנים
+############################################
+variable "account_id" {
+  description = "AWS Account ID (12 digits)"
+  type        = string
+}
+
+############################################
 # VPC
 ############################################
-
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.5.1"
@@ -211,15 +218,17 @@ module "vpc" {
 }
 
 ############################################
-# EKS Cluster
+# EKS (terraform-aws-modules/eks/aws v21.x)
 ############################################
-
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 21.0"
+  version = "21.0.0"
 
-  cluster_name    = "eks-far-2-cel-demo-30-12"
-  cluster_version = "1.30"
+  # ✅ v21.x: cluster_name -> name
+  name = "eks-far-2-cel-demo-30-12"
+
+  # ✅ v21.x: cluster_version -> kubernetes_version
+  kubernetes_version = "1.30"
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -227,10 +236,9 @@ module "eks" {
   ##########################################
   # IAM → Kubernetes (Access Entries)
   ##########################################
-
   access_entries = {
     admin = {
-      principal_arn = "arn:aws:iam::ACCOUNT_ID:user/eks-far-2-cel-demo-user"
+      principal_arn = "arn:aws:iam::${var.account_id}:user/eks-far-2-cel-demo-user"
 
       policy_associations = {
         admin = {
@@ -246,7 +254,6 @@ module "eks" {
   ##########################################
   # Managed Node Group
   ##########################################
-
   eks_managed_node_groups = {
     default = {
       name           = "default-ng"
