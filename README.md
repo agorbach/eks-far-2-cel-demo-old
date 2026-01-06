@@ -60,9 +60,8 @@ Terraform
 
 ## 2️⃣ פתיחת AWS CloudShell
 
-1. היכנס ל־AWS Console  
-2. לחץ על אייקון **CloudShell (>_)**  
-3. ודא ש־CloudShell רץ ב־`us-east-1`  
+
+ 
 בדיקה:
 ```bash
 aws sts get-caller-identity
@@ -94,6 +93,14 @@ eks-far-2-cel-demo-user
 ```bash
 aws configure
 ```
+
+
+הכנס:
+- Access Key ID  
+- Secret Access Key  
+- Default region: `us-east-1`  
+- Output format: `json`
+  
 
 בדיקה:
 ```bash
