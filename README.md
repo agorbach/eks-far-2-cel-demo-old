@@ -318,7 +318,7 @@ yes
 ## 🔟 חיבור kubectl ל־EKS
 
 ```bash
-aws eks update-kubeconfig   --region us-east-1   --name eks-far-2-cel-demo-30-12
+aws eks update-kubeconfig   --region us-east-1   --name eks-13
 
 kubectl get nodes
 ```
