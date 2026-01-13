@@ -3,7 +3,7 @@
 variable "account_id" {
   description = "AWS Account ID (12 digits)"
   type        = string
-  default     = "390403875536"
+  default     = "748576367822"
 }
 
 ############################################
@@ -13,7 +13,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.5.1"
 
-  name = "eks-far-2-cel-demo-30-12-vpc"
+  name = "eks-13-vpc"
   cidr = "10.0.0.0/16"
 
   azs             = ["us-east-1a", "us-east-1b"]
@@ -23,15 +23,14 @@ module "vpc" {
   enable_nat_gateway = true
   single_nat_gateway = true
 
-  # 🔑 קריטי ל-EKS
   public_subnet_tags = {
     "kubernetes.io/role/elb" = "1"
-    "kubernetes.io/cluster/eks-far-2-cel-demo-30-12" = "shared"
+    "kubernetes.io/cluster/eks-13" = "shared"
   }
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = "1"
-    "kubernetes.io/cluster/eks-far-2-cel-demo-30-12" = "shared"
+    "kubernetes.io/cluster/eks-13" = "shared"
   }
 }
 
@@ -44,7 +43,7 @@ module "eks" {
   version = "21.0.0"
 
   # ✅ v21.x: cluster_name -> name
-  name = "eks-far-2-cel-demo-30-12"
+  name = "eks-13"
 
   # ✅ v21.x: cluster_version -> kubernetes_version
   kubernetes_version = "1.30"
