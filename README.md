@@ -284,6 +284,8 @@ module "eks" {
       name           = "default-ng"
       instance_types = ["t3.medium"]
 
+      ami_type = "AL2_x86_64"
+
       min_size     = 1
       desired_size = 2
       max_size     = 3
