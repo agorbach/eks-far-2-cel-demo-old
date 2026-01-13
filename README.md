@@ -207,10 +207,13 @@ nano main.tf
 ⚠️ **חובה להחליף `default` במספר החשבון שלכם (ACCOUNT_ID).**
 
 ```hcl
+############################################
+# Account
+############################################
 variable "account_id" {
   description = "AWS Account ID (12 digits)"
   type        = string
-  default     = "390403875536"
+  default     = "748576367822"
 }
 
 ############################################
@@ -220,7 +223,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.5.1"
 
-  name = "eks-far-2-cel-demo-30-12-vpc"
+  name = "eks-13-vpc"
   cidr = "10.0.0.0/16"
 
   azs             = ["us-east-1a", "us-east-1b"]
@@ -230,35 +233,47 @@ module "vpc" {
   enable_nat_gateway = true
   single_nat_gateway = true
 
-   public_subnet_tags = {
-    "kubernetes.io/role/elb" = "1"
-    "kubernetes.io/cluster/eks-far-2-cel-demo-30-12" = "shared"
+  public_subnet_tags = {
+    "kubernetes.io/role/elb"               = "1"
+    "kubernetes.io/cluster/eks-13"         = "shared"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/role/internal-elb" = "1"
-    "kubernetes.io/cluster/eks-far-2-cel-demo-30-12" = "shared"
+    "kubernetes.io/role/internal-elb"      = "1"
+    "kubernetes.io/cluster/eks-13"         = "shared"
   }
 }
 
-
 ############################################
-# EKS (terraform-aws-modules/eks/aws v21.x)
+# EKS Cluster
 ############################################
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = ">=21.1.0"
+  version = "21.0.0"
 
-  name                 = "eks-far-2-cel-demo-30-12"
-  kubernetes_version   = "1.30"
+  name               = "eks-13"
+  kubernetes_version = "1.30"
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  
-  ##########################################
-  # IAM → Kubernetes (Access Entries)
-  ##########################################
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+
+    kube-proxy = {
+      most_recent = true
+    }
+
+    vpc-cni = {
+      most_recent = true
+    }
+  }
+
+  #################################################
+  # IAM → Kubernetes Access
+  #################################################
   access_entries = {
     admin = {
       principal_arn = "arn:aws:iam::${var.account_id}:user/eks-far-2-cel-demo-user"
@@ -274,15 +289,14 @@ module "eks" {
     }
   }
 
-  ##########################################
+  #################################################
   # Managed Node Group
-  ##########################################
+  #################################################
   eks_managed_node_groups = {
     default = {
       name           = "default-ng"
       instance_types = ["t3.medium"]
-
-      ami_type = "AL2_x86_64"
+      ami_type       = "AL2_x86_64"
 
       min_size     = 1
       desired_size = 2
@@ -290,6 +304,7 @@ module "eks" {
     }
   }
 }
+
 
 
 
@@ -318,12 +333,13 @@ yes
 
 ```bash
 aws eks update-kubeconfig   --region us-east-1   --name eks-13
-aws eks update-cluster-config \
-  --name eks-13 \
-  --region us-east-1 \
-  --resources-vpc-config endpointPublicAccess=true,endpointPrivateAccess=true,publicAccessCidrs=0.0.0.0/0
-
+kubectl get pods -n kube-system
 kubectl get nodes
+
+kubectl run dns-test --rm -it --image=busybox:1.36 -- sh
+nslookup kubernetes.default
+
+
 ```
 
 ---
