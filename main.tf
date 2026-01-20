@@ -47,10 +47,7 @@ module "eks" {
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
-
-  #################################################
-  # ⭐️ CRITICAL: Managed EKS Addons (אל תוותר על זה)
-  #################################################
+  
   cluster_addons = {
     coredns = {
       most_recent = true
