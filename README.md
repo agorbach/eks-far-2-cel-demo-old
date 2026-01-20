@@ -213,7 +213,7 @@ nano main.tf
 variable "account_id" {
   description = "AWS Account ID (12 digits)"
   type        = string
-  default     = "748576367822"
+  default     = "748576367822" # <-- להחליף בכל חשבון
 }
 
 ############################################
@@ -234,13 +234,13 @@ module "vpc" {
   single_nat_gateway = true
 
   public_subnet_tags = {
-    "kubernetes.io/role/elb"               = "1"
-    "kubernetes.io/cluster/eks-13"         = "shared"
+    "kubernetes.io/role/elb"                       = "1"
+    "kubernetes.io/cluster/eks-13"                 = "shared"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/role/internal-elb"      = "1"
-    "kubernetes.io/cluster/eks-13"         = "shared"
+    "kubernetes.io/role/internal-elb"              = "1"
+    "kubernetes.io/cluster/eks-13"                 = "shared"
   }
 }
 
@@ -249,7 +249,7 @@ module "vpc" {
 ############################################
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = ">= 22.0.0"
+  version = "21.14.0"
 
   name               = "eks-13"
   kubernetes_version = "1.30"
@@ -257,23 +257,9 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  cluster_addons = {
-    coredns = {
-      most_recent = true
-    }
-
-    kube-proxy = {
-      most_recent = true
-    }
-
-    vpc-cni = {
-      most_recent = true
-    }
-  }
-
-  #################################################
-  # IAM → Kubernetes Access
-  #################################################
+  ##########################################
+  # IAM → Kubernetes Access (EKS Access Entries)
+  ##########################################
   access_entries = {
     admin = {
       principal_arn = "arn:aws:iam::${var.account_id}:user/eks-far-2-cel-demo-user"
@@ -289,14 +275,15 @@ module "eks" {
     }
   }
 
-  #################################################
+  ##########################################
   # Managed Node Group
-  #################################################
+  ##########################################
   eks_managed_node_groups = {
     default = {
       name           = "default-ng"
       instance_types = ["t3.medium"]
-      ami_type       = "AL2_x86_64"
+
+      ami_type = "AL2_x86_64"
 
       min_size     = 1
       desired_size = 2
@@ -304,6 +291,35 @@ module "eks" {
     }
   }
 }
+
+############################################
+# EKS Addons (קריטי ליציבות הקלאסטר)
+############################################
+
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name = module.eks.cluster_name
+  addon_name   = "vpc-cni"
+
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+}
+
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name = module.eks.cluster_name
+  addon_name   = "kube-proxy"
+
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+}
+
+resource "aws_eks_addon" "coredns" {
+  cluster_name = module.eks.cluster_name
+  addon_name   = "coredns"
+
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+}
+
 
 
 
