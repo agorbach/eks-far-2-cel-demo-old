@@ -348,9 +348,15 @@ yes
 ## 🔟 חיבור kubectl ל־EKS
 
 ```bash
+aws eks update-cluster-config \
+  --name eks-13 \
+  --region us-east-1 \
+  --resources-vpc-config \
+    endpointPublicAccess=true,endpointPrivateAccess=true,publicAccessCidrs=0.0.0.0/0
+
 aws eks update-kubeconfig   --region us-east-1   --name eks-13
-kubectl get pods -n kube-system
 kubectl get nodes
+kubectl get pods -n kube-system
 
 kubectl run dns-test --rm -it --image=busybox:1.36 -- sh
 nslookup kubernetes.default
