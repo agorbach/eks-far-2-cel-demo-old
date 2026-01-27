@@ -1,7 +1,6 @@
 # 🚀 תרגיל סיום – GKE + Helm + Ingress 
 
-**Repository:** `eks-far-2-cel-demo-30-12`  
-**תיקייה ייעודית ב־Repo:** `gke/`  
+**Repository:** `eks-far-2-cel-demo-30-12`   
 **Project (GCP):** `gcp-2026`  
 **Region/Zone:** `us-central1` / `us-central1-a`  
 **Cluster Name:** `far-gke-demo`  
