@@ -221,7 +221,9 @@ docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG .
 Push:
 
 ```bash
-docker push us-central1-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG
+gcloud builds submit \
+  --tag us-central1-docker.pkg.dev/striped-temple-485610-b7/demo-repo/far-2-cel:1.0
+
 ```
 
 בדיקה:
@@ -463,7 +465,9 @@ kubectl get pods
 ```bash
 TAG=2.0
 docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG .
-docker push us-central1-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE:$TAG
+gcloud builds submit \
+  --tag us-central1-docker.pkg.dev/striped-temple-485610-b7/demo-repo/far-2-cel:2.0
+
 ```
 
 3. עדכן `values.yaml`:
